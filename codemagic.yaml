@@ -25,27 +25,36 @@ workflows:
         script: |
           cd ios && pod install
 
-      - name: Build unsigned IPA
+      - name: Build and package unsigned IPA
         script: |
-          xcodebuild \
+          # Step 1: Archive the app
+          xcodebuild archive \
             -workspace ios/$APP_NAME.xcworkspace \
             -scheme $APP_NAME \
             -configuration Release \
             -sdk iphoneos \
+            -archivePath /tmp/$APP_NAME.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -derivedDataPath ios/build
+            CODE_SIGNING_ALLOWED=NO
 
-          # Package into IPA manually
-          mkdir -p build/ios/ipa/Payload
-          cp -r ios/build/Build/Products/Release-iphoneos/$APP_NAME.app \
-            build/ios/ipa/Payload/
-          cd build/ios/ipa
-          zip -r ../../../$APP_NAME.ipa Payload
-          cd ../../..
-          mkdir -p build/ios/ipa
-          mv $APP_NAME.ipa build/ios/ipa/
+          # Step 2: Find .app inside the archive
+          APP_PATH=$(find /tmp/$APP_NAME.xcarchive \
+            -name "*.app" -maxdepth 4 | head -1)
+          echo "✅ App found at: $APP_PATH"
+          ls -la "$APP_PATH"
+
+          # Step 3: Package into IPA
+          rm -rf /tmp/Payload
+          mkdir -p /tmp/Payload
+          cp -r "$APP_PATH" /tmp/Payload/
+          cd /tmp
+          zip -r $APP_NAME.ipa Payload
+          echo "✅ IPA size: $(du -sh $APP_NAME.ipa)"
+
+          # Step 4: Move to artifacts
+          mkdir -p $CM_BUILD_DIR/build/ios/ipa
+          mv /tmp/$APP_NAME.ipa $CM_BUILD_DIR/build/ios/ipa/
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -54,7 +63,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - md.mizan235@gmail.com    # ← PUT YOUR EMAIL HERE
+          - md.mizan235@gmail.com
         notify:
           success: true
           failure: true
