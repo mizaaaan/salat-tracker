@@ -1,6 +1,6 @@
 workflows:
   ios-release:
-    name: Salat Tracker
+    name: Salat Tracker iOS
     max_build_duration: 120
     instance_type: mac_mini_m2
 
@@ -8,23 +8,17 @@ workflows:
       node: 20.11.0
       xcode: latest
       cocoapods: default
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.salattracker.app
-
 
     scripts:
       - name: Install Node dependencies
-        script: |
-          npm install
+        script: npm install
 
-      - name: Expo Prebuild (generate native iOS project)
+      - name: Expo Prebuild
         script: |
           npx expo prebuild --platform ios --clean --non-interactive
 
       - name: CocoaPods install
-        script: |
-          cd ios && pod install
+        script: cd ios && pod install
 
       - name: Set up code signing
         script: |
@@ -35,25 +29,16 @@ workflows:
       - name: Build IPA
         script: |
           xcode-project build-ipa \
-            --workspace "ios/$APP_NAME.xcworkspace" \
-            --scheme "$APP_NAME" \
-            --config "Release"
+            --workspace "ios/SalatTracker.xcworkspace" \
+            --scheme "SalatTracker"
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       email:
         recipients:
-          - avoidmizu@gmail.com
+          - your@email.com
         notify:
           success: true
           failure: true
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
-        beta_groups:
-          - "Internal Testers"
