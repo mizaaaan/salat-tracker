@@ -17,6 +17,14 @@ workflows:
         script: |
           npx expo prebuild --platform ios --clean --non-interactive
 
+      - name: Remove Push Notifications entitlement
+        script: |
+          ENTITLEMENTS="ios/SalatTracker/SalatTracker.entitlements"
+          if [ -f "$ENTITLEMENTS" ]; then
+            /usr/libexec/PlistBuddy -c "Delete :aps-environment" \
+              "$ENTITLEMENTS" 2>/dev/null || true
+          fi
+      
       - name: CocoaPods install
         script: cd ios && pod install
 
