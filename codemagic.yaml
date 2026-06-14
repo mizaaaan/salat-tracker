@@ -15,7 +15,8 @@ workflows:
 
       - name: Expo Prebuild
         script: |
-          npx expo prebuild --platform ios --clean
+          npm install -g expo-cli
+          npx expo prebuild --platform ios --clean 2>&1
 
       - name: Remove Push Notifications entitlement
         script: |
