@@ -60,7 +60,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - your@email.com    # ← PUT YOUR EMAIL HERE
+          - md.mizan235@gmail.com    # ← PUT YOUR EMAIL HERE
         notify:
           success: true
           failure: true
