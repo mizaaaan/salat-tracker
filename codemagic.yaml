@@ -1,6 +1,6 @@
 workflows:
-  ios-adhoc:
-    name: Salat Tracker — iOS IPA (Ad Hoc)
+  ios-unsigned:
+    name: Salat Tracker — Unsigned IPA
     max_build_duration: 120
     instance_type: mac_mini_m2
 
@@ -9,10 +9,8 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: com.salattracker.app
         APP_NAME: SalatTracker
-      groups:
-        - ios_signing
+        BUNDLE_ID: com.salattracker.app
 
     scripts:
       - name: Install Node dependencies
@@ -27,36 +25,27 @@ workflows:
         script: |
           cd ios && pod install
 
-      - name: Set up keychain & import certificate
+      - name: Build unsigned IPA
         script: |
-          keychain initialize
+          xcodebuild \
+            -workspace ios/$APP_NAME.xcworkspace \
+            -scheme $APP_NAME \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath ios/build
 
-          # Decode certificate
-          echo $CM_CERTIFICATE | base64 -D -o /tmp/cert.p12
-
-          # Import certificate (handle empty password)
-          if [ -z "$CM_CERTIFICATE_PASSWORD" ]; then
-            keychain add-certificates --certificate /tmp/cert.p12
-          else
-            keychain add-certificates \
-              --certificate /tmp/cert.p12 \
-              --certificate-password "$CM_CERTIFICATE_PASSWORD"
-          fi
-
-          # Decode and install provisioning profile
-          echo $CM_PROVISIONING_PROFILE | base64 -D -o /tmp/profile.mobileprovision
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          cp /tmp/profile.mobileprovision \
-            "$HOME/Library/MobileDevice/Provisioning Profiles/salattracker.mobileprovision"
-
-          xcode-project use-profiles
-
-      - name: Build IPA
-        script: |
-          xcode-project build-ipa \
-            --workspace "ios/$APP_NAME.xcworkspace" \
-            --scheme "$APP_NAME" \
-            --config "Release"
+          # Package into IPA manually
+          mkdir -p build/ios/ipa/Payload
+          cp -r ios/build/Build/Products/Release-iphoneos/$APP_NAME.app \
+            build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r ../../../$APP_NAME.ipa Payload
+          cd ../../..
+          mkdir -p build/ios/ipa
+          mv $APP_NAME.ipa build/ios/ipa/
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -65,7 +54,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - md.mizan235@gmail.com
+          - md.mizan235@gmail.com    # ← PUT YOUR EMAIL HERE
         notify:
           success: true
           failure: true
