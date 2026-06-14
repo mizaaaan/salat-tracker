@@ -1,53 +1,65 @@
 workflows:
   ios-release:
-    name: Salat Tracker iOS
+    name: Salat Tracker — iOS IPA
     max_build_duration: 120
     instance_type: mac_mini_m2
 
     environment:
-      ios_signing:
-        distribution_type: app_store # or: ad_hoc | development | enterprise
-        bundle_identifier: com.example.id
+      node: 20.11.0
+      xcode: 15.4
+      cocoapods: default
+      groups:
+        - app_store_connect   # set these in Codemagic → Teams → Integrations
+        - ios_signing         # set these in Codemagic → Teams → Integrations
+      vars:
+        BUNDLE_ID: "com.salattracker.app"
+        APP_NAME: "SalatTracker"
 
     scripts:
       - name: Install Node dependencies
-        script: npm install
-
-      - name: Expo Prebuild
         script: |
-          npm install -g expo-cli
-          npx expo prebuild --platform ios --clean 2>&1
+          npm install
 
-      - name: Remove Push Notifications entitlement
+      - name: Expo Prebuild (generate native iOS project)
         script: |
-          ENTITLEMENTS="ios/SalatTracker/SalatTracker.entitlements"
-          if [ -f "$ENTITLEMENTS" ]; then
-            /usr/libexec/PlistBuddy -c "Delete :aps-environment" \
-              "$ENTITLEMENTS" 2>/dev/null || true
-          fi
-      
+          npx expo prebuild --platform ios --clean --non-interactive
+
       - name: CocoaPods install
-        script: cd ios && pod install
+        script: |
+          cd ios && pod install
 
-      - name: Set up code signing
+      - name: Set up keychain & code signing
         script: |
           keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --platform IOS \
+            --type IOS_APP_STORE \
+            --create
           keychain add-certificates
           xcode-project use-profiles
 
       - name: Build IPA
         script: |
           xcode-project build-ipa \
-            --workspace "ios/SalatTracker.xcworkspace" \
-            --scheme "SalatTracker"
+            --workspace "ios/$APP_NAME.xcworkspace" \
+            --scheme "$APP_NAME" \
+            --config "Release"
 
     artifacts:
       - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       email:
         recipients:
-          - md.mizan235@gmail.com
+          - your@email.com          # ← change this
         notify:
           success: true
           failure: true
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - "Internal Testers"
