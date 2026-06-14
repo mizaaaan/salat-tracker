@@ -1,12 +1,12 @@
 workflows:
   ios-release:
-    name: Salat Tracker — iOS IPA
+    name: Salat Tracker
     max_build_duration: 120
     instance_type: mac_mini_m2
 
     environment:
       node: 20.11.0
-      xcode: 15.4
+      xcode: latest
       cocoapods: default
       groups:
         - app_store_connect   # set these in Codemagic → Teams → Integrations
@@ -52,7 +52,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - your@email.com          # ← change this
+          - md.mizan235@gmail.com          # ← change this
         notify:
           success: true
           failure: true
