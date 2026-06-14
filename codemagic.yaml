@@ -8,12 +8,9 @@ workflows:
       node: 20.11.0
       xcode: latest
       cocoapods: default
-      groups:
-        - app_store_connect   # set these in Codemagic → Teams → Integrations
-        - ios_signing         # set these in Codemagic → Teams → Integrations
-      vars:
-        BUNDLE_ID: "com.salattracker.app"
-        APP_NAME: "SalatTracker"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.salattracker.app
 
     scripts:
       - name: Install Node dependencies
@@ -52,7 +49,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - md.mizan235@gmail.com          # ← change this
+          - avoidmizu@gmail.com
         notify:
           success: true
           failure: true
