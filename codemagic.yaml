@@ -12,7 +12,7 @@ workflows:
         BUNDLE_ID: com.salattracker.app
         APP_NAME: SalatTracker
       groups:
-        - ios_signing   # contains CM_CERTIFICATE, CM_CERTIFICATE_PASSWORD, CM_PROVISIONING_PROFILE
+        - ios_signing
 
     scripts:
       - name: Install Node dependencies
@@ -31,18 +31,23 @@ workflows:
         script: |
           keychain initialize
 
-          # Decode and import your .p12 certificate
-          echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
-          keychain add-certificates --certificate /tmp/cert.p12 \
-            --certificate-password $CM_CERTIFICATE_PASSWORD
+          # Decode certificate
+          echo $CM_CERTIFICATE | base64 -D -o /tmp/cert.p12
 
-          # Decode and install your provisioning profile
-          echo $CM_PROVISIONING_PROFILE | base64 --decode > /tmp/profile.mobileprovision
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          UUID=$(grep -a -A1 '<key>UUID</key>' /tmp/profile.mobileprovision \
-            | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/' | xargs)
+          # Import certificate (handle empty password)
+          if [ -z "$CM_CERTIFICATE_PASSWORD" ]; then
+            keychain add-certificates --certificate /tmp/cert.p12
+          else
+            keychain add-certificates \
+              --certificate /tmp/cert.p12 \
+              --certificate-password "$CM_CERTIFICATE_PASSWORD"
+          fi
+
+          # Decode and install provisioning profile
+          echo $CM_PROVISIONING_PROFILE | base64 -D -o /tmp/profile.mobileprovision
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp /tmp/profile.mobileprovision \
-            ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+            "$HOME/Library/MobileDevice/Provisioning Profiles/salattracker.mobileprovision"
 
           xcode-project use-profiles
 
@@ -60,7 +65,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - md.mizan235@gmail.com    # ← PUT YOUR EMAIL HERE
+          - md.mizan235@gmail.com
         notify:
           success: true
           failure: true
