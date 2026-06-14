@@ -6,7 +6,7 @@ workflows:
 
     environment:
       node: 20.11.0
-      xcode: 15.4
+      xcode: latest
       cocoapods: default
       groups:
         - app_store_connect   # set these in Codemagic → Teams → Integrations
