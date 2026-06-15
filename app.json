@@ -52,9 +52,9 @@
       "expo-sensors"
     ],
     "extra": {
-      "eas": {
-        "projectId": "your-eas-project-id-here"
-      }
-    }
+  "eas": {
+    "projectId": "9ee37bc3-f9eb-4e91-a709-a30fb81c0376"
+  }
+}
   }
 }
