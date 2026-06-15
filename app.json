@@ -1,8 +1,7 @@
 {
   "expo": {
     "name": "SalatTracker",
-    "slug": "salattracker",
-    "owner": "mizaaaans-organization",
+    "slug": "salat-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -53,9 +52,9 @@
       "expo-sensors"
     ],
     "extra": {
-  "eas": {
-    "projectId": "9ee37bc3-f9eb-4e91-a709-a30fb81c0376"
-  }
-}
+      "eas": {
+        "projectId": "your-eas-project-id-here"
+      }
+    }
   }
 }
