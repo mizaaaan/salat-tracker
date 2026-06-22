@@ -12,7 +12,6 @@ const { width: SCREEN_W } = Dimensions.get('window');
 
 // ── Landscape card dimensions ─────────────────────────────────────────────────
 const CARD_W = SCREEN_W - 32;           // full width minus small margins
-const CARD_H = 400;                        // tall enough for full semicircle + text
 
 // ── Prayer background images ──────────────────────────────────────────────────
 const PRAYER_IMAGES = {
@@ -43,6 +42,7 @@ const ARC_RY  = ARC_RX;                    // perfect semicircle: vertical = hor
 const ARC_CX  = (LEFT_X + RIGHT_X) / 2;
 const BASE_Y  = ARC_RY + 8;
 const ARC_H   = BASE_Y + 8;
+const CARD_H  = ARC_H + 125; // topRow(40) + spacer(10) + dots(25) + padding(50) = 125
 
 function arcPointAt(t) {
   const theta = Math.PI * (1 - t);
