@@ -5,12 +5,12 @@ export const TRACKABLE_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 export const ALL_PRAYERS       = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
 export const PRAYER_META = {
-  Fajr:    { icon: '🌅', arabic: 'الفجر',   color: '#7B8CDE' },
-  Sunrise: { icon: '🌄', arabic: 'الشروق',  color: '#F9A825' },
-  Dhuhr:   { icon: '☀️', arabic: 'الظهر',   color: '#FFD600' },
-  Asr:     { icon: '🌤️', arabic: 'العصر',  color: '#FF8F00' },
-  Maghrib: { icon: '🌇', arabic: 'المغرب',  color: '#FF7043' },
-  Isha:    { icon: '🌙', arabic: 'العشاء',  color: '#5C6BC0' },
+  Fajr:    { icon: '🌅', image: require('../../assets/prayers/fajr.png'),    arabic: 'الفجر',   color: '#7B8CDE' },
+  Sunrise: { icon: '🌄', image: require('../../assets/prayers/sunrise.png'), arabic: 'الشروق',  color: '#F9A825' },
+  Dhuhr:   { icon: '☀️', image: require('../../assets/prayers/dhuhr.png'),   arabic: 'الظهر',   color: '#FFD600' },
+  Asr:     { icon: '🌤️', image: require('../../assets/prayers/asr.png'),    arabic: 'العصر',   color: '#FF8F00' },
+  Maghrib: { icon: '🌇', image: require('../../assets/prayers/maghrib.png'), arabic: 'المغرب',  color: '#FF7043' },
+  Isha:    { icon: '🌙', image: require('../../assets/prayers/isha.png'),    arabic: 'العشاء',  color: '#5C6BC0' },
 };
 
 /**
@@ -43,16 +43,39 @@ export const calculateQibla = (latitude, longitude) => {
 
 /**
  * Finds the next upcoming prayer after now.
- * Returns { name, time } or null if all prayers have passed.
+ * If every prayer for today has already passed (i.e. it's after Isha),
+ * rolls over and returns tomorrow's Fajr — provided latitude/longitude
+ * are passed in so tomorrow's times can be calculated.
+ * Returns { name, time } or null if it can't be determined.
  */
-export const getNextPrayer = (prayerTimes) => {
+export const getNextPrayer = (prayerTimes, latitude, longitude) => {
   const now = new Date();
   for (const name of ALL_PRAYERS) {
     if (prayerTimes[name] && prayerTimes[name] > now) {
       return { name, time: prayerTimes[name] };
     }
   }
+
+  // All of today's prayers have passed (post-Isha) — roll over to tomorrow's Fajr
+  if (latitude != null && longitude != null) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTimes = calculatePrayerTimes(latitude, longitude, tomorrow);
+    return { name: 'Fajr', time: tomorrowTimes.Fajr };
+  }
+
   return null;
+};
+
+/**
+ * Returns tomorrow's Fajr time for a given location — used to anchor the
+ * night-time (Maghrib → Fajr) arc once today's Maghrib has passed.
+ */
+export const getTomorrowFajr = (latitude, longitude) => {
+  if (latitude == null || longitude == null) return null;
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return calculatePrayerTimes(latitude, longitude, tomorrow).Fajr;
 };
 
 /**
