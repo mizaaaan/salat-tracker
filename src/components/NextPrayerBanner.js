@@ -12,7 +12,7 @@ const { width: SCREEN_W } = Dimensions.get('window');
 
 // ── Landscape card dimensions ─────────────────────────────────────────────────
 const CARD_W = SCREEN_W - 32;           // full width minus small margins
-const CARD_H = Math.round(CARD_W * 0.62); // ~62% of width → landscape 16:10 feel
+const CARD_H = 400;                        // tall enough for full semicircle + text
 
 // ── Prayer background images ──────────────────────────────────────────────────
 const PRAYER_IMAGES = {
@@ -39,7 +39,7 @@ const LEFT_X  = 10;
 const RIGHT_X = ARC_W - 10;
 
 const ARC_RX  = (RIGHT_X - LEFT_X) / 2;   // horizontal radius
-const ARC_RY  = Math.round(ARC_RX * 0.38); // ← flatter ellipse (was equal to ARC_RX)
+const ARC_RY  = ARC_RX;                    // perfect semicircle: vertical = horizontal radius
 const ARC_CX  = (LEFT_X + RIGHT_X) / 2;
 const BASE_Y  = ARC_RY + 8;
 const ARC_H   = BASE_Y + 8;
@@ -283,7 +283,7 @@ export default function NextPrayerBanner({
           </View>
 
           {/* Small spacer */}
-          <View style={{ flex: 1 }} />
+          <View style={{ height: 10 }} />
 
           {/* ── Arc + Info block ──────────────────────────────────────────── */}
           <View style={styles.arcContainer}>
